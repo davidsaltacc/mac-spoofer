@@ -229,7 +229,6 @@ func main() {
 						setMac(currentMAC, adapters[adapterCombo.CurrentIndex()].Index)
 						statusLabel.SetText("MAC address applied successfully")
 					} else {
-						setMac(currentMAC, adapters[adapterCombo.CurrentIndex()].Index)
 						statusLabel.SetText("Invalid MAC address format")
 					}
 				},
