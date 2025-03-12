@@ -12,6 +12,7 @@ import (
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
+	"github.com/lxn/win"
 )
 
 type AdapterInfo struct {
@@ -132,6 +133,11 @@ func main() {
 	var statusLabel *walk.Label
 	var adapterCombo *walk.ComboBox
 
+	icon, err := walk.NewIconFromResourceId(2)
+	if err != nil {
+		panic(err)
+	}
+
 	rawAdapters := getNetworkAdapterInfo("NetConnectionId")
 	var validAdapters []AdapterInfo
 
@@ -147,10 +153,12 @@ func main() {
 	adapters := []AdapterInfo{}
 	adapters = append(adapters, validAdapters...)
 
-	if _, err := (MainWindow{
+	if err := (MainWindow{
 		AssignTo: &mw,
 		Title:    "MAC Spoofer",
+		MinSize:  Size{300, 200},
 		Size:     Size{300, 200},
+		MaxSize:  Size{300, 200},
 		Layout:   VBox{},
 		Children: []Widget{
 			Label{
@@ -231,7 +239,15 @@ func main() {
 				Text:     "Ready",
 			},
 		},
-	}).Run(); err != nil {
+	}).Create(); err != nil {
 		panic(err)
 	}
+
+	mw.SetIcon(icon)
+
+	flag := win.GetWindowLong(mw.Handle(), win.GWL_STYLE)
+	flag &= ^win.WS_THICKFRAME
+	win.SetWindowLong(mw.Handle(), win.GWL_STYLE, flag)
+
+	mw.Run()
 }

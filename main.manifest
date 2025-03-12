@@ -3,7 +3,7 @@
     <assemblyIdentity
         version="1.0.0.0"
         processorArchitecture="*"
-        name="MyApp"
+        name="mac-spoofer"
         type="win32"
     />
     <dependency>
