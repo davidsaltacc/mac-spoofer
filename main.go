@@ -27,6 +27,19 @@ func getKey(id int) registry.Key {
 	return key
 }
 
+func changeAdapter(id int, disable bool) {
+	action := "enable"
+	if disable {
+		action = "disable"
+	}
+	cmd := exec.Command("netsh", "interface", "set", "interface", "\""+getNetworkAdapterInfo("NetConnectionId")[id]+"\"", "admin="+action)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	_, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func removeColons(mac string) string {
 	new := strings.ReplaceAll(mac, ":", "")
 	if len(new) != 12 {
@@ -89,7 +102,9 @@ func setMac(mac string, index int) {
 	if err != nil {
 		panic(err)
 	}
+	changeAdapter(index, true)
 	err = key.SetStringValue("NetworkAddress", removeColons(mac))
+	changeAdapter(index, false)
 	if err != nil {
 		panic(err)
 	}
