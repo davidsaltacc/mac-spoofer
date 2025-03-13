@@ -61,10 +61,14 @@ func addColons(mac string) string {
 	return newMac[:len(newMac)-1]
 }
 
-func randomMac() string {
+func randomMac(firstDigit02 bool) string {
+	first := 2
+	if !firstDigit02 {
+		first = rand.Intn(256)
+	}
 	return strings.ToUpper(fmt.Sprintf(
 		"%02x:%02x:%02x:%02x:%02x:%02x",
-		rand.Intn(256),
+		first,
 		rand.Intn(256),
 		rand.Intn(256),
 		rand.Intn(256),
@@ -132,6 +136,7 @@ func main() {
 	var macInput *walk.LineEdit
 	var statusLabel *walk.Label
 	var adapterCombo *walk.ComboBox
+	var firstDigitBox *walk.CheckBox
 
 	icon, err := walk.NewIconFromResourceId(2)
 	if err != nil {
@@ -156,9 +161,9 @@ func main() {
 	if err := (MainWindow{
 		AssignTo: &mw,
 		Title:    "MAC Spoofer",
-		MinSize:  Size{300, 200},
-		Size:     Size{300, 200},
-		MaxSize:  Size{300, 200},
+		MinSize:  Size{300, 220},
+		Size:     Size{300, 220},
+		MaxSize:  Size{300, 220},
 		Layout:   VBox{},
 		Children: []Widget{
 			Label{
@@ -193,10 +198,7 @@ func main() {
 								statusLabel.SetText("Please select an adapter")
 								return
 							}
-							random := randomMac()
-							setMac(random, adapters[adapterCombo.CurrentIndex()].Index)
-							macInput.SetText(random)
-							statusLabel.SetText("Randomized MAC applied")
+							macInput.SetText(randomMac(firstDigitBox.Checked()))
 						},
 					},
 					PushButton{
@@ -206,13 +208,16 @@ func main() {
 								statusLabel.SetText("Please select an adapter")
 								return
 							}
-							original := getOriginalMac(adapters[adapterCombo.CurrentIndex()].Index)
-							setMac(original, adapters[adapterCombo.CurrentIndex()].Index)
-							macInput.SetText(original)
-							statusLabel.SetText("Original MAC restored")
+							macInput.SetText(getOriginalMac(adapters[adapterCombo.CurrentIndex()].Index))
 						},
 					},
 				},
+			},
+			CheckBox{
+				AssignTo:  &firstDigitBox,
+				Checked:   true,
+				Text:      "Use 02 as first randomized digit (recommended)",
+				Alignment: AlignHNearVCenter,
 			},
 			PushButton{
 				Text: "Apply MAC Address",
@@ -223,6 +228,12 @@ func main() {
 						return
 					}
 					macInput.SetText(strings.ToUpper(macInput.Text()))
+					if len(macInput.Text()) == 12 {
+						macInput.SetText(addColons(macInput.Text()))
+					}
+					if strings.Contains(macInput.Text(), "-") {
+						macInput.SetText(strings.ReplaceAll(macInput.Text(), "-", ":"))
+					}
 					currentMAC := macInput.Text()
 					if isValidMac(currentMAC) {
 						println("attempting to set mac address to " + currentMAC)
